@@ -10,8 +10,8 @@
     body {
       background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.65)),
                   url('https://i.imgur.com/mJoCBsb.png') no-repeat center top;
-      background-size: 100% 100%; /* sem corte e sem zoom */
-      background-color: #2b2b2b; /* fill empty space */
+      background-size: 100% 100%;
+      background-color: #2b2b2b;
       background-attachment: scroll;
       color:#e5e5e5;
       transition: background 0.5s;
@@ -19,11 +19,11 @@
     }
 
     @font-face {
-  font-family: 'DropShade';
-  src: url('https://files.catbox.moe/bsplgq.ttf');
-}
+      font-family: 'DropShade';
+      src: url('https://files.catbox.moe/bsplgq.ttf');
+    }
 
-header {
+    header {
       background:#3a3a3a;
       padding:30px;
       text-align:center;
@@ -32,11 +32,11 @@ header {
       border-radius:0 0 25px 25px;
       box-shadow: 0 5px 20px rgba(0,0,0,0.5);
       animation: fadeDown 0.6s ease;
-}
+    }
 
-header span {
+    header span {
       font-family: 'DropShade', Arial;
-}
+    }
 
     nav {
       display:flex;
@@ -62,15 +62,11 @@ header span {
       position: relative;
       -webkit-tap-highlight-color: transparent;
     }
-    }
 
-    nav button:focus {
-      outline: none;
-      box-shadow: 4px 4px 12px #1f1f1f, -4px -4px 12px #4a4a4a;
-    }
-
+    nav button:focus,
     nav button:focus-visible {
       outline: none;
+      box-shadow: 4px 4px 12px #1f1f1f, -4px -4px 12px #4a4a4a;
     }
 
     nav button::after {
@@ -123,7 +119,6 @@ header span {
       box-shadow: 14px 14px 30px #1a1a1a, -14px -14px 30px #505050;
     }
 
-    /* Responsividade */
     @media (min-width: 1024px) {
       .card { font-size:20px; padding:40px; }
       header { font-size:32px; }
@@ -149,6 +144,76 @@ header span {
       from { opacity:0; transform: translateY(-20px); }
       to { opacity:1; transform: translateY(0); }
     }
+
+    /* FOOTER E BOTÕES SOCIAIS */
+    .footer {
+      margin-top: 40px;
+      padding: 25px;
+      text-align: center;
+    }
+
+    .socials {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .socials a {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:60px;
+      height:60px;
+      border-radius:50%;
+      background: linear-gradient(145deg, #444, #2f2f2f);
+      box-shadow: 4px 4px 12px #1f1f1f, -4px -4px 12px #4a4a4a;
+      transition: 0.3s;
+      outline: none;
+      -webkit-tap-highlight-color: transparent; /* remove retângulo azul mobile */
+      user-select: none; /* remove highlight ao clicar */
+    }
+
+    .socials a:focus,
+    .socials a:focus-visible,
+    .socials a:active {
+      outline: none;
+      box-shadow: 4px 4px 12px #1f1f1f, -4px -4px 12px #4a4a4a;
+    }
+
+    .yt-btn svg {
+      width:28px;
+      height:28px;
+      fill:#ff0000;
+    }
+
+    .custom-btn img {
+      width:32px;
+      height:32px;
+      border-radius:50%;
+    }
+
+    .videos-btn {
+      display:inline-block;
+      margin-top:20px;
+      padding:12px 25px;
+      border-radius:25px;
+      background: linear-gradient(145deg, #444, #2f2f2f);
+      color:#e5e5e5;
+      text-decoration:none;
+      font-weight:bold;
+      box-shadow: 4px 4px 12px #1f1f1f, -4px -4px 12px #4a4a4a;
+      transition:0.3s;
+    }
+
+    .videos-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .socials a:hover {
+      transform: translateY(-3px) scale(1.05);
+    }
   </style>
 </head>
 <body>
@@ -168,7 +233,7 @@ header span {
   <button onclick="showSection('essencia')">Essência Final</button>
 </nav>
 
-<!-- conteúdo mantido exatamente igual -->
+<!-- Seções mantidas exatamente como você enviou -->
 
 <div id="origem" class="section active"><div class="card">TROLLGIANISMO — HISTÓRIA COMPLETA (VERSÃO ATUALIZADA)
 
@@ -470,7 +535,6 @@ e cada Trollger carrega uma identidade única dentro da existência</div></div>
   }
 </script>
 
-
 <footer class="footer">
   <p>Seguir nas redes sociais</p>
   <div class="socials">
@@ -479,77 +543,12 @@ e cada Trollger carrega uma identidade única dentro da existência</div></div>
         <path d="M23.5 6.2s-.2-1.7-.9-2.5c-.9-1-1.9-1-2.4-1.1C16.8 2.3 12 2.3 12 2.3h0s-4.8 0-8.2.3c-.5.1-1.5.1-2.4 1.1C.7 4.5.5 6.2.5 6.2S.2 8.2.2 10.1v1.8c0 1.9.3 3.9.3 3.9s.2 1.7.9 2.5c.9 1 2.1 1 2.6 1.1 1.9.2 8 .3 8 .3s4.8 0 8.2-.3c.5-.1 1.5-.1 2.4-1.1.7-.8.9-2.5.9-2.5s.3-2 .3-3.9v-1.8c0-1.9-.3-3.9-.3-3.9zM9.5 14.5v-5l5 2.5-5 2.5z"/>
       </svg>
     </a>
-      <a href="https://trollgianismo-trollgers.blogspot.com/?m=1" target="_blank" class="custom-btn">
+    <a href="https://trollgianismo-trollgers.blogspot.com/?m=1" target="_blank" class="custom-btn">
       <img src="https://play-lh.googleusercontent.com/cWG9-bk2_zLdKsN9vsYEdbCReVfzgXU6FeHUmLI8a24FoZ05TpOLYXInCQ278FTwCw" alt="Trollgianismo">
     </a>
   </div>
   <a href="videos.html" class="videos-btn">Todas as Resenhas em vídeo</a>
 </footer>
 
-<style>
-.footer {
-  margin-top: 40px;
-  padding: 25px;
-  text-align: center;
-}
-
-.socials {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-.socials a {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  background: linear-gradient(145deg, #444, #2f2f2f);
-  box-shadow: 4px 4px 12px #1f1f1f, -4px -4px 12px #4a4a4a;
-  transition: 0.3s;
-}
-
-.socials a:hover {
-  transform: scale(1.1);
-}
-
-.yt-btn svg {
-  width:28px;
-  height:28px;
-  fill:#ff0000;
-}
-
-.custom-btn img {
-  width:32px;
-  height:32px;
-  border-radius:50%;
-}
-
-.videos-btn {
-  display:inline-block;
-  margin-top:20px;
-  padding:12px 25px;
-  border-radius:25px;
-  background: linear-gradient(145deg, #444, #2f2f2f);
-  color:#e5e5e5;
-  text-decoration:none;
-  font-weight:bold;
-  box-shadow: 4px 4px 12px #1f1f1f, -4px -4px 12px #4a4a4a;
-  transition:0.3s;
-}
-
-.videos-btn:hover {
-  transform: scale(1.05);
-}
-
-.socials a:hover {
-  transform: translateY(-3px) scale(1.05);
-}
-</style>
-
 </body>
-</html>
+  </html>
