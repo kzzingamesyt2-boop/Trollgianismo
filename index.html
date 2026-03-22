@@ -185,7 +185,7 @@
 
     try {
       // Carregar mensagens existentes
-      const data = await apiFetch('/messages?order=ts.asc&limit=100');
+      const data = await apiFetch('/messages?order=Ts.asc&limit=100');
 
       document.getElementById('setup-screen').style.display = 'none';
       document.getElementById('chat-screen').style.display = 'flex';
@@ -221,8 +221,8 @@
   async function pollMessages() {
     try {
       const path = lastId > 0
-        ? '/messages?order=ts.asc&id=gt.' + lastId
-        : '/messages?order=ts.asc&limit=100';
+        ? '/messages?order=Ts.asc&id=gt.' + lastId
+        : '/messages?order=Ts.asc&limit=100';
       const data = await apiFetch(path);
       if (data.length > 0) {
         document.getElementById('empty-state')?.remove();
@@ -260,7 +260,7 @@
     const container = document.getElementById('messages-container');
     document.getElementById('empty-state')?.remove();
 
-    const ts = new Date(data.ts);
+    const ts = new Date(data.Ts);
     const dateStr = ts.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
     const timeStr = ts.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
