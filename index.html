@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chat</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <style>
@@ -17,280 +17,163 @@
       --accent2: #5de4c7;
       --text: #e8e8f0;
       --muted: #6b6b80;
+      --bar-h: 70px;
+      --hdr-h: 58px;
     }
 
-    html { height: 100%; }
-
-    body {
-      height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      display: flex;
-      flex-direction: column;
-    }
+    html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; }
 
     /* ── SETUP ── */
     #setup {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
       padding: 20px;
+      background: var(--bg);
+      z-index: 10;
     }
 
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 36px 28px;
-      width: 100%;
-      max-width: 420px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 28px;
+      width: 100%; max-width: 440px;
     }
 
     .card h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-      margin-bottom: 6px;
+      font-size: 1.8rem; font-weight: 800; margin-bottom: 6px;
       background: linear-gradient(135deg, var(--text) 40%, var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
 
     .card p { color: var(--muted); font-size: 0.88rem; margin-bottom: 24px; }
 
-    label {
-      display: block;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
+    label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
 
     .card input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 13px 16px;
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem;
-      outline: none;
-      margin-bottom: 18px;
-      transition: border-color 0.2s;
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 13px 16px; color: var(--text);
+      font-family: 'Syne', sans-serif; font-size: 1rem; outline: none;
+      margin-bottom: 18px; transition: border-color 0.2s;
     }
-
     .card input:focus { border-color: var(--accent); }
 
-    .btn {
-      width: 100%;
-      padding: 14px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
+    .btn-enter {
+      width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none;
+      border-radius: 12px; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
       cursor: pointer;
-      transition: opacity 0.2s;
     }
-
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-enter:disabled { opacity: 0.5; }
 
     .err {
-      background: rgba(240,80,80,0.1);
-      border: 1px solid rgba(240,80,80,0.3);
-      color: #f05050;
-      border-radius: 10px;
-      padding: 11px 14px;
-      margin-bottom: 16px;
-      font-size: 0.82rem;
-      display: none;
-      line-height: 1.5;
+      background: rgba(240,80,80,0.1); border: 1px solid rgba(240,80,80,0.3);
+      color: #f05050; border-radius: 10px; padding: 11px 14px;
+      margin-bottom: 16px; font-size: 0.82rem; display: none; line-height: 1.5;
     }
 
     /* ── CHAT ── */
-    #chat {
-      display: none;
-      flex-direction: column;
-      height: 100%;
-      max-width: 860px;
-      width: 100%;
-      margin: 0 auto;
-    }
+    #chat { display: none; position: fixed; inset: 0; }
 
-    /* Header */
+    /* Header — fixed top */
     .hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      position: absolute; top: 0; left: 0; right: 0;
+      height: var(--hdr-h);
+      display: flex; align-items: center; justify-content: space-between;
       padding: 0 16px;
-      height: 58px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      z-index: 2;
     }
 
     .hdr-left { display: flex; align-items: center; gap: 10px; }
 
     .avatar {
-      width: 34px; height: 34px;
-      border-radius: 50%;
+      width: 34px; height: 34px; border-radius: 50%;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 0.8rem; color: #fff;
-      flex-shrink: 0;
+      font-weight: 800; font-size: 0.8rem; color: #fff; flex-shrink: 0;
     }
 
     .room-name { font-weight: 700; font-size: 0.95rem; }
-
-    .dot {
-      width: 7px; height: 7px;
-      background: var(--accent2);
-      border-radius: 50%;
-      box-shadow: 0 0 5px var(--accent2);
-      animation: blink 2s infinite;
-    }
-
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-    .status { font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+    .dot { width: 7px; height: 7px; background: var(--accent2); border-radius: 50%; box-shadow: 0 0 5px var(--accent2); animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+    .status-txt { font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; }
 
     .btn-out {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-family: 'Syne', sans-serif;
-      font-size: 0.75rem;
-      cursor: pointer;
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      border-radius: 8px; padding: 6px 12px; font-family: 'Syne', sans-serif; font-size: 0.75rem; cursor: pointer;
     }
 
-    /* Messages */
+    /* Messages — scrollable middle */
     #msgs {
-      flex: 1;
+      position: absolute;
+      top: var(--hdr-h);
+      bottom: var(--bar-h);
+      left: 0; right: 0;
       overflow-y: auto;
       padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      overscroll-behavior: contain;
+      display: flex; flex-direction: column; gap: 2px;
     }
 
     #msgs::-webkit-scrollbar { width: 4px; }
     #msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-    .empty {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      gap: 8px;
-      font-size: 0.88rem;
-      pointer-events: none;
-    }
-
+    .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: var(--muted); gap: 8px; font-size: 0.88rem; min-height: 200px; }
     .empty-ico { font-size: 2rem; opacity: 0.35; }
 
     .grp { display: flex; flex-direction: column; margin-bottom: 6px; }
     .grp.me { align-items: flex-end; }
     .grp.them { align-items: flex-start; }
-
-    .sender-name {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--muted);
-      margin-bottom: 3px;
-      padding: 0 4px;
-    }
+    .sender-name { font-size: 0.7rem; font-weight: 600; color: var(--muted); margin-bottom: 3px; padding: 0 4px; }
 
     .bubble {
-      max-width: 75%;
-      padding: 9px 13px;
-      border-radius: 16px;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      word-break: break-word;
+      max-width: 75%; padding: 9px 13px; border-radius: 16px;
+      font-size: 0.9rem; line-height: 1.5; word-break: break-word;
       animation: pop .18s ease;
     }
-
     @keyframes pop { from{opacity:0;transform:scale(.95) translateY(3px)} to{opacity:1;transform:none} }
-
     .grp.me .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
     .grp.them .bubble { background: var(--surface2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-
     .time { font-size: 0.62rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 3px; padding: 0 4px; }
-
     .sys { text-align: center; font-size: 0.7rem; color: var(--muted); margin: 6px 0; font-family: 'DM Mono', monospace; }
-
-    .date-div {
-      display: flex; align-items: center; gap: 10px;
-      margin: 14px 0; color: var(--muted); font-size: 0.7rem; font-family: 'DM Mono', monospace;
-    }
+    .date-div { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(--muted); font-size: 0.7rem; font-family: 'DM Mono', monospace; }
     .date-div::before, .date-div::after { content:''; flex:1; height:1px; background: var(--border); }
 
-    /* Input bar — fixed at bottom */
+    /* Input bar — fixed bottom */
     .bar {
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-      padding: 12px 16px;
-      padding-bottom: max(12px, env(safe-area-inset-bottom));
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: var(--bar-h);
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 16px;
+      background: var(--surface); border-top: 1px solid var(--border);
+      z-index: 2;
     }
 
     #inp {
       flex: 1;
-      min-height: 44px;
-      max-height: 120px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 11px 16px;
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      font-size: 0.92rem;
-      line-height: 1.45;
-      outline: none;
-      resize: none;
-      overflow-y: auto;
+      height: 44px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 0 16px;
+      color: var(--text); font-family: 'Syne', sans-serif; font-size: 0.92rem;
+      outline: none; resize: none; overflow: hidden;
       transition: border-color 0.2s;
+      line-height: 44px;
     }
-
     #inp:focus { border-color: var(--accent); }
     #inp::placeholder { color: var(--muted); }
 
     #send-btn {
-      width: 44px;
-      height: 44px;
-      flex-shrink: 0;
-      border-radius: 12px;
-      background: var(--accent);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity .2s, transform .15s;
+      width: 44px; height: 44px; flex-shrink: 0;
+      border-radius: 12px; background: var(--accent); border: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
     }
-
-    #send-btn:hover { opacity: .85; transform: scale(1.05); }
-    #send-btn:active { transform: scale(.97); }
     #send-btn svg { width: 17px; height: 17px; fill: #fff; }
+
+    @media (min-width: 860px) {
+      #chat, #setup { max-width: 860px; left: 50%; transform: translateX(-50%); }
+      #chat { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+    }
   </style>
 </head>
 <body>
 
-<!-- SETUP -->
 <div id="setup">
   <div class="card">
     <h1>💬 Chat</h1>
@@ -298,21 +181,20 @@
     <div id="err" class="err"></div>
     <label>Seu apelido</label>
     <input id="name-inp" type="text" placeholder="ex: João, Anônimo..." maxlength="24"
-      onkeydown="if(event.key==='Enter') entrar()"/>
-    <button class="btn" id="enter-btn" onclick="entrar()">Entrar no chat →</button>
+      onkeydown="if(event.key==='Enter')entrar()"/>
+    <button class="btn-enter" id="enter-btn" onclick="entrar()">Entrar no chat →</button>
   </div>
 </div>
 
-<!-- CHAT -->
 <div id="chat">
   <div class="hdr">
     <div class="hdr-left">
       <div class="avatar" id="av">?</div>
       <div>
         <div class="room-name">Sala Geral</div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:1px">
+        <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
           <div class="dot"></div>
-          <span class="status">online</span>
+          <span class="status-txt">online</span>
         </div>
       </div>
     </div>
@@ -327,7 +209,8 @@
   </div>
 
   <div class="bar">
-    <textarea id="inp" placeholder="Digite uma mensagem..." rows="1"></textarea>
+    <input type="text" id="inp" placeholder="Digite uma mensagem..."
+      onkeydown="if(event.key==='Enter')enviar()"/>
     <button id="send-btn" onclick="enviar()">
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </button>
@@ -339,11 +222,11 @@
   const KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjZmVwY3FhYnNmem5kZ3NmZHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODgxNDQsImV4cCI6MjA4OTc2NDE0NH0.dTC1nVGS2biX126LiMjpb8sACTTqxUUDegw2EvVC5Do';
   const H    = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
-  let meuNome = '', lastId = 0, poll;
+  let meuNome = '', lastId = 0, pollTimer;
   let lastDate = null, lastSender = null, grpEl = null;
 
   async function req(path, method, body) {
-    const r = await fetch(BASE + path, { method: method||'GET', headers: H, body: body ? JSON.stringify(body) : undefined });
+    const r = await fetch(BASE + path, { method: method || 'GET', headers: H, body: body ? JSON.stringify(body) : undefined });
     const t = await r.text();
     if (!r.ok) throw new Error(t);
     return t ? JSON.parse(t) : [];
@@ -360,7 +243,7 @@
     try {
       const dados = await req('/messages?order=Ts.asc&limit=100');
       document.getElementById('setup').style.display = 'none';
-      document.getElementById('chat').style.display = 'flex';
+      document.getElementById('chat').style.display = 'block';
       document.getElementById('av').textContent = nome[0].toUpperCase();
 
       if (dados.length > 0) {
@@ -370,18 +253,8 @@
       }
 
       await req('/messages', 'POST', { sender: '🔔 sistema', text: nome + ' entrou na sala', Ts: new Date().toISOString() });
-      poll = setInterval(buscarNovas, 2500);
-
-      // Input handlers
-      const inp = document.getElementById('inp');
-      inp.addEventListener('input', () => {
-        inp.style.height = 'auto';
-        inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
-      });
-      inp.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); }
-      });
-      inp.focus();
+      pollTimer = setInterval(buscarNovas, 2500);
+      document.getElementById('inp').focus();
 
     } catch(e) {
       mostrarErro('Erro: ' + e.message);
@@ -406,7 +279,6 @@
     const txt = inp.value.trim();
     if (!txt) return;
     inp.value = '';
-    inp.style.height = 'auto';
 
     try {
       const rows = await req('/messages', 'POST', { sender: meuNome, text: txt, Ts: new Date().toISOString() });
@@ -419,7 +291,7 @@
   }
 
   async function sair() {
-    clearInterval(poll);
+    clearInterval(pollTimer);
     try { await req('/messages', 'POST', { sender: '🔔 sistema', text: meuNome + ' saiu da sala', Ts: new Date().toISOString() }); } catch(e) {}
     location.reload();
   }
@@ -443,8 +315,7 @@
       lastSender = null; grpEl = null;
       const el = document.createElement('div');
       el.className = 'sys'; el.textContent = data.text;
-      container.appendChild(el);
-      rolar(); return;
+      container.appendChild(el); rolar(); return;
     }
 
     const isMe = data.sender === meuNome;
