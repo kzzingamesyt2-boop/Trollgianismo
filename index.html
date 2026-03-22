@@ -284,10 +284,13 @@
     inp.value = '';
 
     try {
-      await req('/messages', 'POST', { sender: meuNome, text: txt, Ts: new Date().toISOString() });
-      // Busca todas as mensagens novas após enviar
+      const rows = await req('/messages', 'POST', { sender: meuNome, text: txt, Ts: new Date().toISOString() });
+      // Força busca de tudo
+      lastId = 0;
       await buscarNovas();
-    } catch(e) { console.error(e); }
+    } catch(e) {
+      alert('Erro ao enviar: ' + e.message);
+    }
   }
 
   async function sair() {
