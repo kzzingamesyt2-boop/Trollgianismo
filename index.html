@@ -223,7 +223,7 @@
   const H    = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
   let meuNome = '', lastId = 0, pollTimer;
-  let lastDate = null, lastSender = null, grpEl = null;
+  let lastDate = null, lastsender = null, grpEl = null;
 
   async function req(path, method, body) {
     const r = await fetch(BASE + path, { method: method || 'GET', headers: H, body: body ? JSON.stringify(body) : undefined });
@@ -241,7 +241,7 @@
     meuNome = nome;
 
     try {
-      const dados = await req('/messages?order=Ts.asc&limit=100');
+      const dados = await req('/messages?order=ts.asc&limit=100');
       document.getElementById('setup').style.display = 'none';
       document.getElementById('chat').style.display = 'block';
       document.getElementById('av').textContent = nome[0].toUpperCase();
@@ -252,7 +252,7 @@
         lastId = Math.max(...dados.map(r => r.id));
       }
 
-      await req('/messages', 'POST', { sender: '🔔 sistema', text: nome + ' entrou na sala', Ts: new Date().toISOString() });
+      await req('/messages', 'POST', { sender: '🔔 sistema', text: nome + ' entrou na sala', ts: new Date().toISOString() });
       pollTimer = setInterval(buscarNovas, 2500);
       document.getElementById('inp').focus();
 
@@ -266,8 +266,8 @@
   async function buscarNovas() {
     try {
       const path = lastId === 0
-        ? '/messages?order=Ts.asc&limit=100'
-        : '/messages?order=Ts.asc&id=gt.' + lastId;
+        ? '/messages?order=ts.asc&limit=100'
+        : '/messages?order=ts.asc&id=gt.' + lastId;
       const dados = await req(path);
       if (dados.length > 0) {
         document.getElementById('empty')?.remove();
@@ -284,7 +284,7 @@
     inp.value = '';
 
     try {
-      const rows = await req('/messages', 'POST', { sender: meuNome, text: txt, Ts: new Date().toISOString() });
+      const rows = await req('/messages', 'POST', { sender: meuNome, text: txt, ts: new Date().toISOString() });
       // Força busca de tudo
       lastId = 0;
       await buscarNovas();
@@ -295,7 +295,7 @@
 
   async function sair() {
     clearInterval(pollTimer);
-    try { await req('/messages', 'POST', { sender: '🔔 sistema', text: meuNome + ' saiu da sala', Ts: new Date().toISOString() }); } catch(e) {}
+    try { await req('/messages', 'POST', { sender: '🔔 sistema', text: meuNome + ' saiu da sala', ts: new Date().toISOString() }); } catch(e) {}
     location.reload();
   }
 
@@ -303,27 +303,27 @@
     const container = document.getElementById('msgs');
     document.getElementById('empty')?.remove();
 
-    const ts = new Date(data.Ts);
+    const ts = new Date(data.ts);
     const dStr = ts.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
-    const tStr = ts.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    const tstr = ts.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
 
     if (dStr !== lastDate) {
-      lastDate = dStr; lastSender = null; grpEl = null;
+      lastDate = dStr; lastsender = null; grpEl = null;
       const sep = document.createElement('div');
       sep.className = 'date-div'; sep.textContent = dStr;
       container.appendChild(sep);
     }
 
     if (data.sender === '🔔 sistema') {
-      lastSender = null; grpEl = null;
+      lastsender = null; grpEl = null;
       const el = document.createElement('div');
       el.className = 'sys'; el.textContent = data.text;
       container.appendChild(el); rolar(); return;
     }
 
     const isMe = data.sender === meuNome;
-    if (data.sender !== lastSender) {
-      lastSender = data.sender;
+    if (data.sender !== lastsender) {
+      lastsender = data.sender;
       grpEl = document.createElement('div');
       grpEl.className = 'grp ' + (isMe ? 'me' : 'them');
       if (!isMe) {
@@ -340,7 +340,7 @@
 
     grpEl.querySelector('.time')?.remove();
     const t = document.createElement('div');
-    t.className = 'time'; t.textContent = tStr;
+    t.className = 'time'; t.textContent = tstr;
     grpEl.appendChild(t);
 
     rolar();
