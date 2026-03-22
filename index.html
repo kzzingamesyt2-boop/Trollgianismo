@@ -198,7 +198,7 @@
       }
 
       // Mensagem de entrada
-      await apiFetch('/messages', 'POST', { sender: '🔔 sistema', text: myName + ' entrou na sala', ts: new Date().toISOString() });
+      await apiFetch('/messages', 'POST', { sender: '🔔 sistema', text: myName + ' entrou na sala', Ts: new Date().toISOString() });
 
       // Polling a cada 2 segundos para novas mensagens
       pollInterval = setInterval(pollMessages, 2000);
@@ -242,7 +242,7 @@
     input.style.height = 'auto';
 
     try {
-      await apiFetch('/messages', 'POST', { sender: myName, text, ts: new Date().toISOString() });
+      await apiFetch('/messages', 'POST', { sender: myName, text, Ts: new Date().toISOString() });
       // Busca imediata após enviar
       await pollMessages();
     } catch(e) {
@@ -252,7 +252,7 @@
 
   window.logout = async function () {
     clearInterval(pollInterval);
-    try { await apiFetch('/messages', 'POST', { sender: '🔔 sistema', text: myName + ' saiu da sala', ts: new Date().toISOString() }); } catch(e) {}
+    try { await apiFetch('/messages', 'POST', { sender: '🔔 sistema', text: myName + ' saiu da sala', Ts: new Date().toISOString() }); } catch(e) {}
     location.reload();
   };
 
