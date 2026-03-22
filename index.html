@@ -265,7 +265,10 @@
 
   async function buscarNovas() {
     try {
-      const dados = await req('/messages?order=Ts.asc&id=gt.' + lastId);
+      const path = lastId === 0
+        ? '/messages?order=Ts.asc&limit=100'
+        : '/messages?order=Ts.asc&id=gt.' + lastId;
+      const dados = await req(path);
       if (dados.length > 0) {
         document.getElementById('empty')?.remove();
         dados.forEach(r => addMsg(r));
@@ -281,12 +284,9 @@
     inp.value = '';
 
     try {
-      const rows = await req('/messages', 'POST', { sender: meuNome, text: txt, Ts: new Date().toISOString() });
-      if (rows && rows.length > 0 && rows[0].id > lastId) {
-        document.getElementById('empty')?.remove();
-        lastId = rows[0].id;
-        addMsg(rows[0]);
-      }
+      await req('/messages', 'POST', { sender: meuNome, text: txt, Ts: new Date().toISOString() });
+      // Busca todas as mensagens novas após enviar
+      await buscarNovas();
     } catch(e) { console.error(e); }
   }
 
