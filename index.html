@@ -99,7 +99,25 @@
     .btn-send:hover { opacity: 0.85; transform: scale(1.05); }
     .btn-send svg { width: 18px; height: 18px; fill: #fff; }
 
-    @media (max-width: 500px) { .setup-card { padding: 32px 20px; } .msg-bubble { max-width: 88%; } }
+    /* ── Responsivo ── */
+    @media (max-width: 600px) {
+      .setup-card { padding: 32px 20px; border-radius: 20px; }
+      .setup-card h1 { font-size: 1.6rem; }
+      .msg-bubble { max-width: 88%; font-size: 0.88rem; }
+      .chat-header { padding: 0 14px; height: 56px; }
+      #messages-container { padding: 14px; }
+      .chat-input-bar { padding: 10px 14px; gap: 8px; }
+      #msg-input { padding: 10px 14px; font-size: 0.88rem; }
+      .btn-send { width: 42px; height: 42px; }
+    }
+
+    @media (min-width: 900px) {
+      #chat-screen { max-width: 800px; margin: 0 auto; height: 100vh; }
+      body { background: #08080a; }
+      #chat-screen { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+      .setup-card { max-width: 480px; }
+      .msg-bubble { max-width: 60%; }
+    }
   </style>
 </head>
 <body>
@@ -242,9 +260,17 @@
     input.style.height = 'auto';
 
     try {
-      await apiFetch('/messages', 'POST', { sender: myName, text, Ts: new Date().toISOString() });
-      // Busca imediata após enviar
-      await pollMessages();
+      const rows = await apiFetch('/messages', 'POST', { sender: myName, text, Ts: new Date().toISOString() });
+      // Renderiza imediatamente e atualiza lastId
+      if (rows && rows.length > 0) {
+        const row = rows[0];
+        if (lastId < row.id) {
+          lastId = row.id;
+          renderMessage(row);
+        }
+      } else {
+        await pollMessages();
+      }
     } catch(e) {
       console.error('Send error:', e);
     }
