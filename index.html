@@ -25,14 +25,14 @@
     }
     .setup-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 24px;
-      padding: 48px 40px; width: 100%; max-width: 440px; position: relative; z-index: 1;
+      padding: 40px 32px; width: 100%; max-width: 440px; position: relative; z-index: 1;
     }
     .setup-card h1 {
       font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 6px;
       background: linear-gradient(135deg, var(--text) 40%, var(--accent));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-    .setup-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 32px; }
+    .setup-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 28px; }
     .field-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: block; }
     .setup-card input {
       width: 100%; background: var(--surface2); border: 1px solid var(--border);
@@ -46,10 +46,19 @@
       border-radius: 12px; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
       cursor: pointer; transition: opacity 0.2s, transform 0.15s;
     }
-    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
     .error-banner {
       background: rgba(240,80,80,0.12); border: 1px solid rgba(240,80,80,0.3);
-      color: #f05050; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.82rem; display: none;
+      color: #f05050; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 0.82rem; display: none; word-break: break-all; line-height: 1.5;
+    }
+    .debug-log {
+      background: rgba(93,228,199,0.06); border: 1px solid rgba(93,228,199,0.2);
+      color: var(--accent2); border-radius: 10px; padding: 12px 16px; margin-top: 16px;
+      font-size: 0.75rem; font-family: 'DM Mono', monospace; display: none;
+      max-height: 150px; overflow-y: auto; line-height: 1.8; word-break: break-all;
     }
 
     #chat-screen { display: none; flex-direction: column; height: 100vh; }
@@ -81,7 +90,7 @@
     .msg-group { display: flex; flex-direction: column; margin-bottom: 8px; }
     .msg-group.mine { align-items: flex-end; }
     .msg-group.theirs { align-items: flex-start; }
-    .msg-sender-name { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px; padding: 0 4px; }
+    .msg-sender-name { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; padding: 0 4px; }
     .msg-bubble {
       max-width: 75%; padding: 10px 14px; border-radius: 18px;
       font-size: 0.92rem; line-height: 1.5; word-break: break-word; animation: bubbleIn 0.2s ease;
@@ -123,7 +132,8 @@
     <div id="error-banner" class="error-banner"></div>
     <label class="field-label">Seu apelido</label>
     <input id="input-name" type="text" placeholder="ex: João, Anônimo..." maxlength="24"/>
-    <button class="btn-primary" onclick="enterChat()">Entrar no chat →</button>
+    <button class="btn-primary" id="btn-enter" onclick="enterChat()">Entrar no chat →</button>
+    <div id="debug-log" class="debug-log"></div>
   </div>
 </div>
 
@@ -141,14 +151,12 @@
     </div>
     <button class="btn-logout" onclick="logout()">Sair</button>
   </header>
-
   <div id="messages-container">
     <div class="empty-state" id="empty-state">
       <div class="empty-icon">🌐</div>
       <span>Nenhuma mensagem ainda. Diga olá!</span>
     </div>
   </div>
-
   <div class="chat-input-bar">
     <textarea id="msg-input" rows="1" placeholder="Digite uma mensagem..."></textarea>
     <button class="btn-send" onclick="sendMessage()">
@@ -162,57 +170,108 @@
   const SUPABASE_URL = 'https://acfepcqabsfzndgsfdxk.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjZmVwY3FhYnNmem5kZ3NmZHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODgxNDQsImV4cCI6MjA4OTc2NDE0NH0.dTC1nVGS2biX126LiMjpb8sACTTqxUUDegw2EvVC5Do';
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
-  let myName = '';
-  let lastDate = null;
-  let lastSender = null;
-  let currentGroup = null;
+  let sbClient, myName = '';
+  let lastDate = null, lastSender = null, currentGroup = null;
   let seenIds = new Set();
 
+  function log(msg) {
+    const el = document.getElementById('debug-log');
+    el.style.display = 'block';
+    el.innerHTML += '→ ' + msg + '<br>';
+    el.scrollTop = el.scrollHeight;
+    console.log(msg);
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-banner');
+    el.textContent = msg;
+    el.style.display = 'block';
+    const btn = document.getElementById('btn-enter');
+    if (btn) { btn.disabled = false; btn.textContent = 'Entrar no chat →'; }
+  }
+
+  // Verificar se o SDK carregou
+  window.addEventListener('load', () => {
+    if (typeof window.supabase === 'undefined') {
+      log('ERRO: SDK do Supabase não carregou!');
+    } else {
+      log('SDK carregado ✓');
+      try {
+        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        log('Cliente criado ✓');
+      } catch(e) {
+        log('ERRO ao criar cliente: ' + e.message);
+      }
+    }
+  });
+
   window.enterChat = async function () {
+    const btn = document.getElementById('btn-enter');
+    btn.disabled = true;
+    btn.textContent = 'Conectando...';
+
     const nameVal = document.getElementById('input-name').value.trim();
-    if (!nameVal) return showError('Por favor, insira seu apelido.');
+    if (!nameVal) { showError('Por favor, insira seu apelido.'); return; }
     myName = nameVal;
+    log('Nome: ' + myName);
 
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*')
-      .order('ts', { ascending: true })
-      .limit(100);
-
-    if (error) return showError('Erro ao conectar: ' + error.message);
-
-    document.getElementById('setup-screen').style.display = 'none';
-    document.getElementById('chat-screen').style.display = 'flex';
-    document.getElementById('header-avatar').textContent = myName.charAt(0).toUpperCase();
-
-    if (data && data.length > 0) {
-      document.getElementById('empty-state')?.remove();
-      data.forEach(row => { seenIds.add(row.id); renderMessage(row); });
+    if (!sbClient) {
+      showError('SDK não carregou. Verifique sua conexão com a internet.');
+      return;
     }
 
-    // Realtime
-    supabase
-      .channel('messages-channel')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        if (!seenIds.has(payload.new.id)) {
-          seenIds.add(payload.new.id);
-          renderMessage(payload.new);
-        }
-      })
-      .subscribe();
+    try {
+      log('Buscando mensagens...');
+      const { data, error } = await sbClient
+        .from('messages')
+        .select('*')
+        .order('ts', { ascending: true })
+        .limit(100);
 
-    const input = document.getElementById('msg-input');
-    input.addEventListener('input', () => {
-      input.style.height = 'auto';
-      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
-    });
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.sendMessage(); }
-    });
+      if (error) {
+        log('ERRO Supabase: ' + JSON.stringify(error));
+        showError('Erro: ' + (error.message || JSON.stringify(error)));
+        return;
+      }
 
-    await supabase.from('messages').insert({ sender: '🔔 sistema', text: `${myName} entrou na sala`, ts: new Date().toISOString() });
+      log('Mensagens carregadas: ' + (data ? data.length : 0));
+
+      document.getElementById('setup-screen').style.display = 'none';
+      document.getElementById('chat-screen').style.display = 'flex';
+      document.getElementById('header-avatar').textContent = myName.charAt(0).toUpperCase();
+
+      if (data && data.length > 0) {
+        document.getElementById('empty-state')?.remove();
+        data.forEach(row => { seenIds.add(row.id); renderMessage(row); });
+      }
+
+      sbClient
+        .channel('messages-channel')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+          if (!seenIds.has(payload.new.id)) {
+            seenIds.add(payload.new.id);
+            renderMessage(payload.new);
+          }
+        })
+        .subscribe((status) => console.log('Realtime:', status));
+
+      const input = document.getElementById('msg-input');
+      input.addEventListener('input', () => {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.sendMessage(); }
+      });
+
+      await sbClient.from('messages').insert({
+        sender: '🔔 sistema', text: `${myName} entrou na sala`, ts: new Date().toISOString()
+      });
+
+    } catch(e) {
+      log('EXCEÇÃO: ' + e.message);
+      showError('Erro inesperado: ' + e.message);
+    }
   };
 
   window.sendMessage = async function () {
@@ -222,20 +281,16 @@
     input.value = '';
     input.style.height = 'auto';
 
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
       .from('messages')
       .insert({ sender: myName, text, ts: new Date().toISOString() })
-      .select()
-      .single();
+      .select().single();
 
-    if (!error && data) {
-      seenIds.add(data.id);
-      renderMessage(data);
-    }
+    if (!error && data) { seenIds.add(data.id); renderMessage(data); }
   };
 
   window.logout = async function () {
-    await supabase.from('messages').insert({ sender: '🔔 sistema', text: `${myName} saiu da sala`, ts: new Date().toISOString() });
+    await sbClient.from('messages').insert({ sender: '🔔 sistema', text: `${myName} saiu da sala`, ts: new Date().toISOString() });
     location.reload();
   };
 
@@ -248,63 +303,46 @@
     const timeStr = ts.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     if (dateStr !== lastDate) {
-      lastDate = dateStr;
-      lastSender = null;
-      currentGroup = null;
+      lastDate = dateStr; lastSender = null; currentGroup = null;
       const sep = document.createElement('div');
-      sep.className = 'date-sep';
-      sep.textContent = dateStr;
+      sep.className = 'date-sep'; sep.textContent = dateStr;
       container.appendChild(sep);
     }
 
     if (data.sender === '🔔 sistema') {
       lastSender = null; currentGroup = null;
       const el = document.createElement('div');
-      el.className = 'msg-system';
-      el.textContent = data.text;
-      container.appendChild(el);
-      scrollToBottom();
-      return;
+      el.className = 'msg-system'; el.textContent = data.text;
+      container.appendChild(el); scrollToBottom(); return;
     }
 
     const isMe = data.sender === myName;
-
     if (data.sender !== lastSender) {
       lastSender = data.sender;
       currentGroup = document.createElement('div');
       currentGroup.className = `msg-group ${isMe ? 'mine' : 'theirs'}`;
       if (!isMe) {
         const senderEl = document.createElement('div');
-        senderEl.className = 'msg-sender-name';
-        senderEl.textContent = data.sender;
+        senderEl.className = 'msg-sender-name'; senderEl.textContent = data.sender;
         currentGroup.appendChild(senderEl);
       }
       container.appendChild(currentGroup);
     }
 
     const bubble = document.createElement('div');
-    bubble.className = 'msg-bubble';
-    bubble.textContent = data.text;
+    bubble.className = 'msg-bubble'; bubble.textContent = data.text;
     currentGroup.appendChild(bubble);
 
     currentGroup.querySelector('.msg-time')?.remove();
     const timeEl = document.createElement('div');
-    timeEl.className = 'msg-time';
-    timeEl.textContent = timeStr;
+    timeEl.className = 'msg-time'; timeEl.textContent = timeStr;
     currentGroup.appendChild(timeEl);
-
     scrollToBottom();
   }
 
   function scrollToBottom() {
     const c = document.getElementById('messages-container');
     c.scrollTop = c.scrollHeight;
-  }
-
-  function showError(msg) {
-    const el = document.getElementById('error-banner');
-    el.textContent = msg;
-    el.style.display = 'block';
   }
 </script>
 </body>
